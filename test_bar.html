@@ -1,0 +1,140 @@
+<!doctype html>
+<html>
+  <head>
+  <title>Bar Chart</title>
+  <!--<script src="https://register.docks.rocks/js-graph/Chart.js/Chart.min.js"></script>-->
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  <script src="https://cdn.rawgit.com/ahrex/Chart.js/b09a68353e95cbffbd1fae620c1577a0bb74cbf8/Chart.js"></script>
+  </head>
+  <style>
+    .yaxis {
+      -ms-transform: rotate(270deg); /* IE 9 */
+      -webkit-transform: rotate(270deg); /* Chrome, Safari, Opera */
+      transform: rotate(270deg);
+      color: #777;
+      height: 10px;  
+      writing-mode: bt-rl;
+      text-indent: -3em;
+      padding: 0px 0px 0px 0px;
+      margin: 0px;
+      text-align: left;
+      vertical-align: top;
+    }
+    .datehint {
+      margin-left: 8px;
+    }
+  </style>
+  <body>
+    <center>
+      <h1>Twitter Sentiment Results</h1>
+      <h4 id="subtitle">Sentiment Spread</h4>
+      <a href="/gopcandidates?startdate=2015-01-01&enddate=2015-08-07" class="datehint">
+        Before Debate #1
+      </a>
+      <a href="/gopcandidates?startdate=2015-08-07&enddate=2015-09-16" class="datehint">
+        After Debate #1
+      </a>
+      <a href="/gopcandidates" class="datehint">
+        All Data
+      </a>
+      <div align="center">
+        <table style="padding-right:100px;left:-100px;border-spacing:0px;">
+          <tr>
+          <td><p class="yaxis">Average Sentiment</p></td>
+          <td><div>
+            <canvas id="canvas" height="431" width="627" style="width: 627px; height: 431px;"></canvas>
+          </div></td>
+          </tr>
+        </table>
+        <p style="color:#777;text-align:center">Candidate</p>
+      </div>
+      <div style="width:50%">
+        <ul id="listgroup" style="text-align:left"></ul>
+      </div>
+      <form>
+        Start Date:
+        <input type="date" id="startform" name="startdate" style="margin-right:8px;">
+        End Date:
+        <input type="date" id="endform" name="enddate">
+        <input type="submit">
+      </form>
+    </center>
+    <script>
+      var lURL = "/averages";
+      var qs = (function(a) {
+        if (a == "") return {};
+        var b = {};
+        for (var i = 0; i < a.length; ++i) {
+          var p=a[i].split('=', 2);
+          if (p.length == 1)
+            b[p[0]] = "";
+          else
+            b[p[0]] = decodeURIComponent(p[1].replace(/\+/g, " "));
+        }
+        return b;
+      })(window.location.search.substr(1).split('&'));
+    
+      var startdate = qs['startdate'];
+      var enddate = qs['enddate'];
+      if (startdate && enddate) {
+        console.log('date found', startdate, enddate);
+        $("#startform").val(startdate);
+        $("#endform").val(enddate);
+        $("#subtitle").text(
+          $("#subtitle").text() + " from " + startdate + " to " + enddate
+        );
+        lURL = '/rangeaverage' + window.location.search;
+      }
+
+      var barChartData = {
+        labels : [],
+        datasets : [
+          {
+            label: "Candidates",
+            fillColor : "rgba(220,220,220,0.2)",
+            strokeColor : 'green',
+            highlightFill : "#fff",
+            highlightStroke : "rgba(220,220,220,1)",
+            data : []
+          }
+        ]
+      };
+
+      Chart.defaults.global.scaleBeginAtZero = false;
+      Chart.defaults.global.scaleStartValue = -2;
+      var ctx = document.getElementById("canvas").getContext("2d");
+
+      $.getJSON(lURL, function(data) {
+        // make list of all candidate names. This will serve as labels on the x axis
+        var labelList = [];
+        // make a list of all corresponding values
+        var valueList = [];
+        var minValue = 0;
+        for (item in data) {
+          labelList.push(data[item]["CANDIDATE"]);
+          var sentiment = parseFloat(data[item]["SENTIMENT"]);
+          valueList.push(sentiment);
+          if (sentiment < minValue)
+            minValue = sentiment;
+        }
+        barChartData.labels = labelList;
+        barChartData.datasets[0].data = valueList;
+        var ctx = document.getElementById("canvas").getContext("2d");
+        window.myBar = new Chart(ctx).Bar(barChartData, {
+          scaleBeginAtZero: false,
+          responsive: true
+        });
+        for (index in valueList) {
+          if (valueList[index] >= 0) {
+            myBar.datasets[0].bars[index].fillColor = "green";
+            myBar.datasets[0].bars[index].strokeColor = "green";
+          } else {
+            myBar.datasets[0].bars[index].fillColor = "red";
+            myBar.datasets[0].bars[index].strokeColor = "red";
+          }
+        }
+        window.myBar.update();
+      });
+    </script>
+  </body>
+</html>
