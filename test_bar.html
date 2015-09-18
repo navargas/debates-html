@@ -141,6 +141,12 @@
         }
         window.myBar.update();
       });
+      canvas.onclick = function(evt) {
+        var activeBars = window.myBar.getBarsAtEvent(evt);
+        console.log(activeBars[0].label);
+        if (activeBars[0].label)
+          window.location = '/historical?candidate=' + activeBars[0].label;
+      }
     </script>
   </body>
 </html>
