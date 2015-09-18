@@ -1,0 +1,92 @@
+<!doctype html>
+<html>
+  <head>
+    <title>Historical Data</title>
+    <script src="https://register.docks.rocks/js-graph/Chart.js/Chart.min.js"></script>
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+    </head>
+    <body>
+    <style>
+    .yaxis {
+    -ms-transform: rotate(270deg); /* IE 9 */
+    -webkit-transform: rotate(270deg); /* Chrome, Safari, Opera */
+    transform: rotate(270deg);
+    color: #777;
+    height: 10px;
+    writing-mode: bt-rl;
+    text-indent: -3em;
+    padding: 0px 0px 0px 0px;
+    margin: 0px;
+    text-align: left;
+    vertical-align: top;
+    }
+    </style>
+    <body>
+    <center>
+    <h1>Historical Data</h1>
+    <h4 id=subtitle></h4>
+    <div align="center">
+    <table style="padding-right:100px;left:-100px;border-spacing:0px;">
+    <tr>
+    <td><p class="yaxis">Average Sentiment</p></td>
+    <td><div>
+    <canvas id="canvas" height="431" width="627" style="width: 627px; height: 431px;"></canvas>
+    </div></td>
+    </tr>
+    </table>
+    <p style="color:#777;text-align:center">Day</p>
+    </div>
+    </center>
+
+    <script>
+      var qs = (function(a) {
+        if (a == "") return {};
+        var b = {};
+        for (var i = 0; i < a.length; ++i) {
+          var p=a[i].split('=', 2);
+          if (p.length == 1)
+            b[p[0]] = "";
+          else
+            b[p[0]] = decodeURIComponent(p[1].replace(/\+/g, " "));
+        }
+        return b;
+      })(window.location.search.substr(1).split('&'));
+      var lineChartData = {
+          labels : [],
+          datasets : [
+            {
+              label: "Bush",
+              fillColor : "rgba(220,220,220,0.2)",
+              strokeColor : "rgba(220,110,110,1)",
+              pointColor : "rgba(220,110,110,1)",
+              pointStrokeColor : "#fff",
+              pointHighlightFill : "#fff",
+              pointHighlightStroke : "rgba(220,220,220,1)",
+              data : []
+            }
+          ]
+      };
+
+      var dataurl = "/historicalaverage?candidate="+qs['candidate'];
+
+      $.getJSON(dataurl, function(data) {
+        console.log('data url', dataurl, 'got', data);
+        var datesC = [];
+        var dataC = [];
+        for (var i = 0; i < data.length; i++) {
+          datesC.push(data[i]["DATE"]);
+          dataC.push(data[i]["SENTIMENT"]);
+        }
+        lineChartData.labels = datesC;
+        lineChartData.datasets[0].data = dataC;
+        var ctx = document.getElementById("canvas").getContext("2d");
+        window.myLine = new Chart(ctx).Line(lineChartData, {
+          responsive: true
+        });
+      });
+      canvas.onclick = function(evt){
+        var points = window.myLine.getPointsAtEvent(evt);
+      };
+    </script>
+  </body>
+</html>
