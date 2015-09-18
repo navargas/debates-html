@@ -26,6 +26,9 @@
     <h1>Historical Data</h1>
     <h4 id=subtitle></h4>
     <div align="center">
+    <div>
+      <a href=/gopcandidates>Go Back</a>
+    </div>
     <table style="padding-right:100px;left:-100px;border-spacing:0px;">
     <tr>
     <td><p class="yaxis">Average Sentiment</p></td>
@@ -51,6 +54,7 @@
         }
         return b;
       })(window.location.search.substr(1).split('&'));
+      $('#subtitle').text(qs['candidate']);
       var lineChartData = {
           labels : [],
           datasets : [
